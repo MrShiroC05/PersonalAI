@@ -1,4 +1,6 @@
 import mockAI from './mockAI';
+import onlineAI from './onlineAI';
+
 import type {
   AIAdapter,
   AIProvider,
@@ -8,6 +10,8 @@ import type {
 
 const adapters: Partial<Record<AIProvider, AIAdapter>> = {
   mock: mockAI,
+  online: onlineAI,
+  // offline: offlineAI, // เพิ่มเมื่อสร้าง Offline Adapter
 };
 
 export async function sendToAI(

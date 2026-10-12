@@ -30,6 +30,7 @@ import { sendToAI } from '../services/ai/aiservice';
 
 import { colors, radius, spacing } from '../styles/theme';
 
+import { getAllMemories } from '../storage/memoryStorage';
 import { getDatabase } from '../storage/database';
 import {
   createChat,
@@ -162,6 +163,17 @@ export default function ChatScreen({ navigation, route }: Props) {
           }
         }
 
+        const savedMemories = await getAllMemories();
+
+        const memoryContext = savedMemories
+          .slice(0, 10)
+          .map(
+            (memory, index) =>
+              `${index + 1}. [${memory.category}] ${memory.content}`,
+          )
+          .join('\n')
+          .slice(0, 5000);
+        
         const aiResponse = await sendToAI(
           {
             messages: [
@@ -174,17 +186,21 @@ export default function ChatScreen({ navigation, route }: Props) {
                 content: trimmedText,
               },
             ],
+            memoryContext,
           },
-          'mock',
+          'online',
         );
-
         const assistantMessage = await saveMessage(
           currentChat.id,
           'assistant',
           aiResponse.text,
         );
 
-        setMessages((previous) => [...previous, assistantMessage]);
+        setMessages((previous) => [
+          ...previous,
+          assistantMessage,
+        ]);
+
 
       } catch (error) {
         console.error('Failed to send message:', error);

@@ -48,6 +48,18 @@ async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS
         idx_messages_chat_created
       ON messages(chat_id, created_at);
+
+      CREATE TABLE IF NOT EXISTS memories (
+        id TEXT PRIMARY KEY NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'general',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS
+        idx_memories_updated
+      ON memories(updated_at);
     `);
 
     return db;

@@ -10,6 +10,7 @@ export type AIMessage = {
 // ใช้สำหรับส่งคำขอไปยัง AI Service เพื่อสร้างข้อความตอบกลับ
 export type AIRequest = {
   messages: AIMessage[];
+  memoryContext?: string;
 };
 
 // ใช้สำหรับรับข้อความตอบกลับจาก AI Service
