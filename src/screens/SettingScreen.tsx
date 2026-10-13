@@ -1,18 +1,24 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing } from '../styles/theme';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { colors, radius, spacing } from '../styles/theme';
 
 export default function SettingsScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.icon}>⚙</Text>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Settings</Text>
-      <Text style={styles.description}>
-        ตั้งค่าบุคลิก AI ธีม และการเชื่อมต่อโมเดล
-      </Text>
-      <Text style={styles.note}>
-        Settings coming soon
-      </Text>
-    </View>
+      <Text style={styles.description}>การนัดหมายของคุณจัดเก็บไว้ในเครื่อง</Text>
+
+      <View style={styles.permissionSection}>
+        <Text style={styles.permissionTitle}>นัดหมาย</Text>
+        <Text style={styles.permissionDescription}>
+          บันทึกและจัดการนัดหมายใน SQLite ภายในแอป ไม่ต้องใช้สิทธิ์ปฏิทินของเครื่อง
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -20,29 +26,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  icon: {
-    fontSize: 48,
-    color: colors.primary,
-    marginBottom: spacing.md,
+    padding: spacing.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
   },
   description: {
     fontSize: 14,
     color: colors.textSecondary,
-    textAlign: 'center',
     marginTop: spacing.md,
   },
-  note: {
-    fontSize: 12,
-    color: colors.secondary,
-    marginTop: spacing.lg,
+  permissionSection: {
+    marginTop: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  permissionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  permissionDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
 });

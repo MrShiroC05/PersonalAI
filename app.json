@@ -10,10 +10,6 @@
       "supportsTablet": true
     },
     "android": {
-      "permissions": [
-        "READ_CALENDAR",
-        "WRITE_CALENDAR"
-      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -29,12 +25,6 @@
     "plugins": [
       "expo-sqlite",
       "expo-build-properties",
-      [
-        "expo-calendar",
-        {
-          "calendarPermission": "PersonalAI ต้องใช้ปฏิทินเพื่อแสดงและจัดการนัดหมายของคุณ"
-        }
-      ],
       [
         "llama.rn",
         {

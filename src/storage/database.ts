@@ -60,6 +60,23 @@ async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS
         idx_memories_updated
       ON memories(updated_at);
+
+      CREATE TABLE IF NOT EXISTS appointments (
+        id TEXT PRIMARY KEY NOT NULL,
+        title TEXT NOT NULL,
+        start_at INTEGER NOT NULL,
+        end_at INTEGER NOT NULL,
+        location TEXT NOT NULL DEFAULT '',
+        notes TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending', 'completed', 'cancelled')),
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS
+        idx_appointments_start
+      ON appointments(start_at);
     `);
 
     return db;

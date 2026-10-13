@@ -11,6 +11,17 @@ export type AIMessage = {
 export type AIRequest = {
   messages: AIMessage[];
   memoryContext?: string;
+  appointmentsContext?: {
+    rangeStart: string;
+    rangeEnd: string;
+    truncated: boolean;
+    appointments: {
+      title: string;
+      startAt: string;
+      endAt: string;
+      status: 'pending' | 'completed' | 'cancelled';
+    }[];
+  };
   calendarContext?: {
     localDateTime: string;
     timeZone: string;

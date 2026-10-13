@@ -6,8 +6,6 @@ import type {
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/+$/, '');
-console.log('API_BASE_URL:', API_BASE_URL);
-console.log(`Request URL ${API_BASE_URL}/api/chat`)
 
 const onlineAI: AIAdapter = {
   async generateReply(request: AIRequest) {
@@ -25,6 +23,7 @@ const onlineAI: AIAdapter = {
       body: JSON.stringify({
         messages: request.messages,
         memoryContext: request.memoryContext,
+        appointmentsContext: request.appointmentsContext,
         calendarContext: request.calendarContext,
       }),
     });
