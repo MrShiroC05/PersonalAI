@@ -9,6 +9,7 @@ import {
     Text,
     TextInput,
     View,
+    Image,
 } from 'react-native';
 
 import {
@@ -25,6 +26,8 @@ import {
     getAllChats,
     renameChat,
 } from '../storage/chatStorage';
+
+const icon = require('../images/Icon.jpg');
 
 export default function ChatHistoryDrawer(
     props: DrawerContentComponentProps,
@@ -209,7 +212,7 @@ export default function ChatHistoryDrawer(
         {/* Drawer Header */}
         <View style={styles.header}>
           <View style={styles.logo}>
-            <Text style={styles.logoText}>M</Text>
+            <Image source={icon} style={{ width: '100%', height: '100%', borderRadius: 12 }} />
           </View>
 
           <View style={styles.headerText}>
