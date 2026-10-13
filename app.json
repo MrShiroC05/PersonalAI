@@ -10,20 +10,38 @@
       "supportsTablet": true
     },
     "android": {
+      "permissions": [
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.mrshiroc05.PersonalAI"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-sqlite",
-      "expo-build-properties"
+      "expo-build-properties",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "PersonalAI ต้องใช้ปฏิทินเพื่อแสดงและจัดการนัดหมายของคุณ"
+        }
+      ],
+      [
+        "llama.rn",
+        {
+          "forceCxx20": true,
+          "enableOpenCLAndHexagon": false
+        }
+      ]
     ]
   }
 }

@@ -11,12 +11,28 @@ export type AIMessage = {
 export type AIRequest = {
   messages: AIMessage[];
   memoryContext?: string;
+  calendarContext?: {
+    localDateTime: string;
+    timeZone: string;
+  };
+};
+
+export type CalendarAction = {
+  kind: 'none' | 'create' | 'update' | 'delete';
+  title: string;
+  targetTitle: string;
+  targetStartAt: string;
+  startAt: string;
+  endAt: string;
+  location: string;
+  notes: string;
 };
 
 // ใช้สำหรับรับข้อความตอบกลับจาก AI Service
 export type AIResponse = {
   text: string;
   provider: AIProvider;
+  calendarAction?: CalendarAction;
 };
 
 // กำหนด interface สำหรับ AIAdapter เพื่อให้สามารถสร้างข้อความตอบกลับจาก AI Service ได้

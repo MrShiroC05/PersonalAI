@@ -25,8 +25,16 @@ import ChatInput from '../components/ChatInput';
 
 import type { RootDrawerParamList } from '../navigation/AppNavigator';
 import type { Chat, ChatMessage } from '../types/chat';
+import type { CalendarAction } from '../services/ai/types';
 
 import { sendToAI } from '../services/ai/aiservice';
+import {
+  createDeviceEvent,
+  deleteDeviceEvent,
+  getDeviceCalendars,
+  getEventsForMonth,
+  updateDeviceEvent,
+} from '../services/calendarService';
 
 import { colors, radius, spacing } from '../styles/theme';
 
@@ -45,6 +53,186 @@ import {
 } from '../storage/messageStorage';
 
 type Props = DrawerScreenProps<RootDrawerParamList, 'Chat'>;
+
+function parseActionDate(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value);
+  if (!match) return null;
+
+  const [, year, month, day, hour, minute, second = '0'] = match;
+  const parsed = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
+
+  if (
+    parsed.getFullYear() !== Number(year) ||
+    parsed.getMonth() !== Number(month) - 1 ||
+    parsed.getDate() !== Number(day) ||
+    parsed.getHours() !== Number(hour) ||
+    parsed.getMinutes() !== Number(minute)
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function localDateTimeNow(): string {
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+async function proposeCalendarAction(action?: CalendarAction): Promise<void> {
+  if (!action || action.kind === 'none') return;
+
+  try {
+    const calendars = await getDeviceCalendars();
+    const writableCalendars = calendars.filter(
+      (calendar) => calendar.allowsModifications,
+    );
+
+    if (action.kind === 'create') {
+      const startDate = parseActionDate(action.startAt);
+      const endDate = parseActionDate(action.endAt);
+      const targetCalendar = writableCalendars.find(
+        (calendar) => calendar.isPrimary,
+      ) ?? writableCalendars[0];
+
+      if (!action.title.trim() || !startDate || !endDate || endDate <= startDate) {
+        Alert.alert('นัดหมายยังไม่ครบ', 'AI ยังระบุชื่อหรือช่วงเวลาได้ไม่ชัดเจน กรุณาระบุรายละเอียดเพิ่ม');
+        return;
+      }
+      if (!targetCalendar) {
+        Alert.alert('ไม่มีปฏิทินที่เขียนได้', 'เลือกหรือเพิ่มปฏิทินที่แก้ไขได้ในการตั้งค่าเครื่องก่อน');
+        return;
+      }
+
+      Alert.alert(
+        'ยืนยันเพิ่มนัดหมาย',
+        `${action.title}\n${startDate.toLocaleString('th-TH')} - ${endDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}\n${targetCalendar.title}`,
+        [
+          { text: 'ยกเลิก', style: 'cancel' },
+          {
+            text: 'บันทึก',
+            onPress: () => {
+              void createDeviceEvent({
+                calendarId: targetCalendar.id,
+                title: action.title.trim(),
+                startDate,
+                endDate,
+                location: action.location,
+                notes: action.notes,
+              }).catch((error) => {
+                console.error('AI calendar create failed:', error);
+                Alert.alert('บันทึกไม่สำเร็จ', 'ไม่สามารถเพิ่มนัดหมายลงปฏิทินได้');
+              });
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    const targetStartAt = parseActionDate(action.targetStartAt);
+    if (!action.targetTitle.trim() || !targetStartAt) {
+      Alert.alert('ระบุนัดหมายไม่ชัดเจน', 'กรุณาบอกชื่อนัดหมายและวันที่หรือเวลาเดิมให้ชัดเจนก่อน');
+      return;
+    }
+
+    const targetEvents = await getEventsForMonth(
+      calendars.filter((calendar) => calendar.isVisible !== false),
+      targetStartAt.getFullYear(),
+      targetStartAt.getMonth(),
+    );
+    const matches = targetEvents.filter((event) => {
+      const eventStart = new Date(event.startDate);
+      return event.title.trim().toLocaleLowerCase() === action.targetTitle.trim().toLocaleLowerCase() &&
+        eventStart.getFullYear() === targetStartAt.getFullYear() &&
+        eventStart.getMonth() === targetStartAt.getMonth() &&
+        eventStart.getDate() === targetStartAt.getDate() &&
+        eventStart.getHours() === targetStartAt.getHours() &&
+        eventStart.getMinutes() === targetStartAt.getMinutes();
+    });
+
+    if (matches.length !== 1) {
+      Alert.alert(
+        matches.length === 0 ? 'ไม่พบนัดหมาย' : 'พบนัดหมายมากกว่าหนึ่งรายการ',
+        'ไม่ได้เปลี่ยนแปลงปฏิทิน กรุณาระบุชื่อและวันของนัดหมายให้ชัดเจน หรือจัดการจากหน้าปฏิทิน',
+      );
+      return;
+    }
+
+    const event = matches[0];
+    const eventCalendar = writableCalendars.find(
+      (calendar) => calendar.id === event.calendarId,
+    );
+    if (!eventCalendar || event.recurrenceRule) {
+      Alert.alert('แก้ไขรายการนี้ไม่ได้', 'ปฏิทินนี้อ่านอย่างเดียว หรือเป็นนัดหมายที่เกิดซ้ำ');
+      return;
+    }
+
+    if (action.kind === 'delete') {
+      Alert.alert(
+        'ยืนยันลบนัดหมาย',
+        `${event.title}\n${new Date(event.startDate).toLocaleString('th-TH')}`,
+        [
+          { text: 'ยกเลิก', style: 'cancel' },
+          {
+            text: 'ลบ',
+            style: 'destructive',
+            onPress: () => {
+              void deleteDeviceEvent(event.id).catch((error) => {
+                console.error('AI calendar delete failed:', error);
+                Alert.alert('ลบไม่สำเร็จ', 'ไม่สามารถลบนัดหมายออกจากปฏิทินได้');
+              });
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    const startDate = action.startAt ? parseActionDate(action.startAt) : new Date(event.startDate);
+    const endDate = action.endAt ? parseActionDate(action.endAt) : new Date(event.endDate);
+    if (!startDate || !endDate || endDate <= startDate) {
+      Alert.alert('เวลาใหม่ไม่ถูกต้อง', 'ไม่ได้เปลี่ยนแปลงปฏิทิน กรุณาระบุเวลาเริ่มและสิ้นสุดให้ถูกต้อง');
+      return;
+    }
+
+    const updated = {
+      title: action.title.trim() || event.title,
+      startDate,
+      endDate,
+      location: action.location || event.location || '',
+      notes: action.notes || event.notes || '',
+    };
+
+    Alert.alert(
+      'ยืนยันแก้ไขนัดหมาย',
+      `${event.title} → ${updated.title}\n${startDate.toLocaleString('th-TH')} - ${endDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`,
+      [
+        { text: 'ยกเลิก', style: 'cancel' },
+        {
+          text: 'บันทึกการแก้ไข',
+          onPress: () => {
+            void updateDeviceEvent(event.id, updated).catch((error) => {
+              console.error('AI calendar update failed:', error);
+              Alert.alert('แก้ไขไม่สำเร็จ', 'ไม่สามารถแก้ไขนัดหมายในปฏิทินได้');
+            });
+          },
+        },
+      ],
+    );
+  } catch (error) {
+    console.error('Failed to prepare AI calendar action:', error);
+    Alert.alert('เข้าถึงปฏิทินไม่ได้', 'ตรวจสอบสิทธิ์ปฏิทินในการตั้งค่าเครื่องแล้วลองอีกครั้ง');
+  }
+}
 
 export default function ChatScreen({ navigation, route }: Props) {
   
@@ -187,6 +375,10 @@ export default function ChatScreen({ navigation, route }: Props) {
               },
             ],
             memoryContext,
+            calendarContext: {
+              localDateTime: localDateTimeNow(),
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+            },
           },
           'online',
         );
@@ -200,6 +392,7 @@ export default function ChatScreen({ navigation, route }: Props) {
           ...previous,
           assistantMessage,
         ]);
+        void proposeCalendarAction(aiResponse.calendarAction);
 
 
       } catch (error) {
@@ -288,7 +481,7 @@ export default function ChatScreen({ navigation, route }: Props) {
                       ยินดีที่ได้พบกัน!
                     </Text>
                     <Text style={styles.emptyDescription}>
-                      วันนี้อยากคุยเรื่องอะไรกับฉันดี?
+                      วันนี้อยากคุยเรื่องอะไรกับฉันดี? ช่วยบอกฉันหน่อย
                     </Text>
                   </View>
                 }

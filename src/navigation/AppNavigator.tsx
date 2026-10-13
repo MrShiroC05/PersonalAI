@@ -4,6 +4,7 @@ import {
 } from '@react-navigation/drawer';
 
 import ChatScreen from '../screens/ChatScreen';
+import AppointmentScreen from '../screens/AppointmentScreen';
 import MemoryScreen from '../screens/MemoryScreen';
 import SettingsScreen from '../screens/SettingScreen';
 import ChatHistoryDrawer from '../components/ChatHistoryDrawer';
@@ -12,6 +13,7 @@ import { colors } from '../styles/theme';
 
 export type RootDrawerParamList = {
   Chat: { chatId?: string } | undefined;
+  Appointments: undefined;
   Memory: undefined;
   Settings: undefined;
 };
@@ -44,6 +46,14 @@ export default function AppNavigator() {
         component={ChatScreen}
         options={{
           title: 'Chat',
+        }}
+      />
+
+      <Drawer.Screen
+        name="Appointments"
+        component={AppointmentScreen}
+        options={{
+          title: 'Appointments',
         }}
       />
 

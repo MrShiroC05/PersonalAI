@@ -195,7 +195,7 @@ export default function ChatHistoryDrawer(
     );
   };
 
-  const navigateTo = (screen: 'Memory' | 'Settings') => {
+  const navigateTo = (screen: 'Appointments' | 'Memory' | 'Settings') => {
     props.navigation.navigate(screen);
     props.navigation.closeDrawer();
   };
@@ -308,6 +308,14 @@ export default function ChatHistoryDrawer(
 
         {/* Other pages */}
         <View style={styles.divider} />
+
+        <Pressable
+          style={styles.pageButton}
+          onPress={() => navigateTo('Appointments')}
+        >
+          <Text style={styles.pageIcon}>▦</Text>
+          <Text style={styles.pageText}>Appointments</Text>
+        </Pressable>
 
         <Pressable
           style={styles.pageButton}

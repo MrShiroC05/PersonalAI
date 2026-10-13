@@ -1,10 +1,13 @@
 import type {
   AIAdapter,
+  AIResponse,
   AIRequest,
 } from './types';
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/+$/, '');
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log(`Request URL ${API_BASE_URL}/api/chat`)
 
 const onlineAI: AIAdapter = {
   async generateReply(request: AIRequest) {
@@ -22,10 +25,15 @@ const onlineAI: AIAdapter = {
       body: JSON.stringify({
         messages: request.messages,
         memoryContext: request.memoryContext,
+        calendarContext: request.calendarContext,
       }),
     });
 
-    const data: { text?: string; error?: string } =
+    const data: {
+      text?: string;
+      error?: string;
+      calendarAction?: AIResponse['calendarAction'];
+    } =
       await response.json();
 
     if (!response.ok) {
@@ -41,6 +49,7 @@ const onlineAI: AIAdapter = {
     return {
       text: data.text,
       provider: 'online',
+      calendarAction: data.calendarAction,
     };
   },
 };
