@@ -3,7 +3,7 @@ import { colors, radius, spacing } from './theme';
 import { sharedStyles } from './styles';
 
 const styles = StyleSheet.create({
-  screen: sharedStyles.screen,
+  screen: sharedStyles.background,
   header: {
     flexDirection: 'row',
     alignItems: 'center',
