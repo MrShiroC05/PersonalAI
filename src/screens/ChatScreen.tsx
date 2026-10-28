@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  ImageBackground,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Text,
@@ -189,12 +189,13 @@ export default function ChatScreen({ navigation, route }: Props) {
   );
 
   return (
-    <ImageBackground
-      source={require('../images/backgroundImage.jpg')}
-      resizeMode="cover"
-      style={styles.background}
-      imageStyle={styles.backgroundImage}
-    >
+    <View style={styles.background}>
+      <Image
+        source={require('../images/backgroundImage.jpg')}
+        resizeMode="cover"
+        style={styles.backgroundImage}
+        accessible={false}
+      />
       <View pointerEvents="none" style={styles.backgroundTint} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <KeyboardAvoidingView
@@ -282,6 +283,6 @@ export default function ChatScreen({ navigation, route }: Props) {
             </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
