@@ -31,7 +31,8 @@
           "forceCxx20": true,
           "enableOpenCLAndHexagon": false
         }
-      ]
+      ],
+      "expo-status-bar"
     ]
   }
 }
